@@ -22,7 +22,7 @@ import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.net.PortProber;
 import org.openqa.selenium.remote.UnreachableBrowserException;
 
-import java.io.*;
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 

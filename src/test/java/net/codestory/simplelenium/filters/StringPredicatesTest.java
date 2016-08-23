@@ -15,12 +15,12 @@
  */
 package net.codestory.simplelenium.filters;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.google.common.base.Predicate;
+import org.junit.Test;
 
 import java.util.regex.Pattern;
 
-import com.google.common.base.Predicate;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StringPredicatesTest {
   @Test

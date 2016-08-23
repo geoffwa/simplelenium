@@ -15,10 +15,6 @@
  */
 package net.codestory.simplelenium;
 
-import net.codestory.simplelenium.filters.LazyDomElement;
-import net.codestory.simplelenium.selectors.ByCssSelectorOrByNameOrById;
-import org.openqa.selenium.By;
-
 public abstract class SectionObject extends Navigation {
   String path() {
     String currentUrl = driver().getCurrentUrl();

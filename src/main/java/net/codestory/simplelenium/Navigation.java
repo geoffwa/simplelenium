@@ -28,7 +28,6 @@ import java.net.URI;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
 
 public abstract class Navigation extends DomElementFinder {
   static ThreadLocal<String> baseUrl = new ThreadLocal<>();
