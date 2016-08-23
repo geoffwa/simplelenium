@@ -12,7 +12,7 @@ Add Simplerlenium as a maven or gradle test dependency to your project:
 
 ```xml
 <dependency>
-  <groupId>net.code-story</groupId>
+  <groupId>com.github.geoffwa</groupId>
   <artifactId>simplerlenium</artifactId>
   <version>2.1</version>
   <scope>test</scope>
@@ -21,7 +21,7 @@ Add Simplerlenium as a maven or gradle test dependency to your project:
 
 ```groovy
 dependencies {
-  testCompile group: 'net.code-story', name: 'simplerlenium', version: '2.1'
+  testCompile group: 'com.github.geoffwa', name: 'simplerlenium', version: '2.1'
 }
 ```
 
@@ -30,7 +30,7 @@ automatically for you so that nothing has to be installed on the machine.
 `mvn clean install` is all one should need!
 
 ```java
-import net.codestory.simplerlenium.SeleniumTest;
+import com.github.geoffwa.simplerlenium.SeleniumTest;
 import org.junit.Test;
 
 public class QuickStartTest extends SeleniumTest {
@@ -79,9 +79,9 @@ Give it a try and you'll be surprised at how Selenium testing can be fun again
 ## Finders
 
 Finding elements start with either a
-[find("cssSelector")](src/main/java/net/codestory/simplerlenium/DomElementFinder.java)
+[find("cssSelector")](src/main/java/com/github/geoffwa/simplerlenium/DomElementFinder.java)
 or a
-[find(org.openqa.selenium.By)](src/main/java/net/codestory/simplerlenium/DomElementFinder.java)
+[find(org.openqa.selenium.By)](src/main/java/com/github/geoffwa/simplerlenium/DomElementFinder.java)
 . There's no other choice. That's simple. You can use the full power of cssSelector,
 which should be enough most of the time, or use standard Selenium
 `org.openqa.selenium.By` sub-classes.
@@ -253,9 +253,9 @@ also removes a lot of boilerplate code and decreases code duplication.
 Let's take a look at a small example:
 
 ```java
-import net.codestory.simplerlenium.DomElement;
-import net.codestory.simplerlenium.PageObject;
-import net.codestory.simplerlenium.SeleniumTest;
+import com.github.geoffwa.simplerlenium.DomElement;
+import com.github.geoffwa.simplerlenium.PageObject;
+import com.github.geoffwa.simplerlenium.SeleniumTest;
 import org.junit.Test;
 
 public class QuickStartTest extends SeleniumTest {
