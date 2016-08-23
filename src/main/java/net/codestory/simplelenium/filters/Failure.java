@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License
  */
+/**
+ * NOTE: modified from original
+ */
 package net.codestory.simplelenium.filters;
 
 import com.google.common.base.Predicate;

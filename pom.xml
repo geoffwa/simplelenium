@@ -208,12 +208,12 @@
       <plugin>
         <!-- license:format -->
         <inherited>false</inherited>
-        <groupId>com.mycila.maven-license-plugin</groupId>
-        <artifactId>maven-license-plugin</artifactId>
-        <version>1.9.0</version>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>3.0</version>
         <configuration>
           <header>${project.basedir}/LICENSE</header>
-          <failIfMissing>true</failIfMissing>
+          <failIfMissing>false</failIfMissing>
           <strictCheck>true</strictCheck>
           <aggregate>true</aggregate>
           <includes>
