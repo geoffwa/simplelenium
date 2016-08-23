@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>net.code-story</groupId>
-  <artifactId>simplelenium</artifactId>
+  <artifactId>simplerlenium</artifactId>
   <version>2.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Simplelenium</name>
+  <name>Simplerlenium</name>
   <description>A simple and robust layer on top of Selenium and PhantomJS.</description>
-  <url>https://github.com/dgageot/simplelenium</url>
+  <url>https://github.com/geoffwa/simplerlenium</url>
 
   <parent>
     <groupId>org.sonatype.oss</groupId>
@@ -19,9 +19,9 @@
   </parent>
 
   <scm>
-    <connection>scm:git:git@github.com:dgageot/simplelenium.git</connection>
-    <url>scm:git:git@github.com:dgageot/simplelenium.git</url>
-    <developerConnection>scm:git:git@github.com:dgageot/simplelenium.git</developerConnection>
+    <connection>scm:git:git@github.com:geoffwa/simplerlenium.git</connection>
+    <url>scm:git:git@github.com:geoffwa/simplerlenium.git</url>
+    <developerConnection>scm:git:git@github.com:geoffwa/simplerlenium.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
