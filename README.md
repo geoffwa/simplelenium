@@ -1,56 +1,36 @@
-# Simplelenium
+# Simplerlenium
 
-A simple and robust layer on top of
-[Selenium](http://docs.seleniumhq.org/projects/webdriver/) and
-[PhantomJS](http://phantomjs.org/).
+[![Build Status](https://api.travis-ci.org/geoffwa/simplerlenium.png)](https://travis-ci.org/geoffwa/simplerlenium)
 
-It also supports Chrome and Firefox. SauceLabs support is ongoing.
+A fork of [simplelenium](/dgageot/simplelenium) that supports Java 7.
 
-## Goal
+Why Java 7? Because sometimes we have to work in the past...
 
-Testing web pages with Selenium can prove difficult. I've seen a lot
-of projects with an unstable build because of Selenium. To be fair, it's more
-because of the way Selenium is used. Although experience showed me that using
-Selenium properly is harder that one might think.
+## Quick Start
 
-In fact I think that proper usage of Selenium must be left out of tester hands
-and baked into a small, effective library. Simplelenium is my attempt to do so and
-it served me well.
-
-Simplelenium deals properly and out-of-the-box with timing issues and
-`StaleElementReferenceExceptions`. It supports running tests in parallel
-without you thinking about it. It doesn't open annoying windows since it's
-default behaviour is to use [PhantomJS](http://phantomjs.org/), a headless browser.
-
-Give it a try and you'll be surprised at how Selenium testing can be fun again
-(was it ever?).
-
-## Setup (Maven)
-
-Add Simplelenium as a maven test dependency to your project and you are all
-set to go. **Simplelenium requires java 8**.
+Add Simplerlenium as a maven or gradle test dependency to your project:
 
 ```xml
 <dependency>
   <groupId>net.code-story</groupId>
-  <artifactId>simplelenium</artifactId>
+  <artifactId>simplerlenium</artifactId>
   <version>2.1</version>
   <scope>test</scope>
 </dependency>
+```
+
+```groovy
+dependencies {
+  testCompile group: 'net.code-story', name: 'simplerlenium', version: '2.1'
+}
 ```
 
 The first time you run a test, it will download [PhantomJS](http://phantomjs.org/)
 automatically for you so that nothing has to be installed on the machine.
 `mvn clean install` is all one should need!
 
-## Build status
-
-[![Build Status](https://api.travis-ci.org/dgageot/simplelenium.png)](https://travis-ci.org/dgageot/simplelenium)
-
-## Quick Start
-
 ```java
-import net.codestory.simplelenium.SeleniumTest;
+import net.codestory.simplerlenium.SeleniumTest;
 import org.junit.Test;
 
 public class QuickStartTest extends SeleniumTest {
@@ -77,18 +57,37 @@ Lots of finders, actions and verifications are supported. Notice that no timing
 information is provided. The default settings should be ok the vast majority of
 times.
 
+## Goal
+
+Testing web pages with Selenium can prove difficult. I've seen a lot
+of projects with an unstable build because of Selenium. To be fair, it's more
+because of the way Selenium is used. Although experience showed me that using
+Selenium properly is harder that one might think.
+
+In fact I think that proper usage of Selenium must be left out of tester hands
+and baked into a small, effective library. Simplerlenium is my attempt to do so and
+it served me well.
+
+Simplerlenium deals properly and out-of-the-box with timing issues and
+`StaleElementReferenceExceptions`. It supports running tests in parallel
+without you thinking about it. It doesn't open annoying windows since it's
+default behaviour is to use [PhantomJS](http://phantomjs.org/), a headless browser.
+
+Give it a try and you'll be surprised at how Selenium testing can be fun again
+(was it ever?).
+
 ## Finders
 
 Finding elements start with either a
-[find("cssSelector")](src/main/java/net/codestory/simplelenium/DomElementFinder.java)
+[find("cssSelector")](src/main/java/net/codestory/simplerlenium/DomElementFinder.java)
 or a
-[find(org.openqa.selenium.By)](src/main/java/net/codestory/simplelenium/DomElementFinder.java)
+[find(org.openqa.selenium.By)](src/main/java/net/codestory/simplerlenium/DomElementFinder.java)
 . There's no other choice. That's simple. You can use the full power of cssSelector,
 which should be enough most of the time, or use standard Selenium
 `org.openqa.selenium.By` sub-classes.
 
 Searching is not done until a verification is made on the elements.
-Simplelenium is both lazy and tolerant to slow pages and ongoing refreshes.
+Simplerlenium is both lazy and tolerant to slow pages and ongoing refreshes.
 You don't have to worry about it. Just write what the page should look like
 and if it happens within a sound period of time, the next verification is made.
 
@@ -135,7 +134,7 @@ find(".name")
   .not().beDisplayed();
 ```
 
-The way Simplelenium deals with timing issue is basic, yet efficient:
+The way Simplerlenium deals with timing issue is basic, yet efficient:
 
  + It tries to make the search
  + Then the verification
@@ -160,7 +159,7 @@ find(".name").should().within(1, MINUTE).contain("a word");
 ## Narrowing search
 
 Sometimes, searching elements is more difficult than using a simple css selector.
-Simplelenium supports narrowing searches with additional filters, like those:
+Simplerlenium supports narrowing searches with additional filters, like those:
 
 ```java
 find("...").withText().beingEmpty().should()...;
@@ -192,7 +191,7 @@ find("...").last();
 ## Actions
 
 Often, you have to interact with the page, not just make verifications.
-Simplelenium supports a lot of actions. Here are some of them:
+Simplerlenium supports a lot of actions. Here are some of them:
 
 ```java
 find("...").fill("name");
@@ -242,7 +241,7 @@ know that the full power of Selenium is there underneath.
 
 ## Advanced topics
 
-Let's say you are not impressed, what else can Simplelenium do to make writing
+Let's say you are not impressed, what else can Simplerlenium do to make writing
 tests easier?
 
 ### Page Objects and Section Objects
@@ -254,9 +253,9 @@ also removes a lot of boilerplate code and decreases code duplication.
 Let's take a look at a small example:
 
 ```java
-import net.codestory.simplelenium.DomElement;
-import net.codestory.simplelenium.PageObject;
-import net.codestory.simplelenium.SeleniumTest;
+import net.codestory.simplerlenium.DomElement;
+import net.codestory.simplerlenium.PageObject;
+import net.codestory.simplerlenium.SeleniumTest;
 import org.junit.Test;
 
 public class QuickStartTest extends SeleniumTest {
@@ -345,10 +344,10 @@ Sections are injected automatically into tests, page objects and other sections.
 
 ### Running tests in parallel
 
-Simplelenium is good at running tests in parallel. In fact without you doing
+Simplerlenium is good at running tests in parallel. In fact without you doing
 anything on the code side, it should just work.
 
-Simplelenium keeps a distinct WebDriver for each thread. You don't
+Simplerlenium keeps a distinct WebDriver for each thread. You don't
 have to think about it. Let's say you configure surefire to run tests in
 parallel at class or method level. Easy! You don't have to copy this
 configuration, with a different syntax, into your test framework. It will just
@@ -391,13 +390,13 @@ How cool is that?
 
 ### Run tests with Chrome or Firefox
 
-Even if Simplelenium supports PhantomJs out of the box and by default,
+Even if Simplerlenium supports PhantomJs out of the box and by default,
 tests can be run on Chrome or Firefox.
 
 Run tests with '-Dbrowser=chrome',  '-Dbrowser=firefox', '-Dbrowser=phantom_js' to
 choose which browser you want to use.
 
-If you choose `chrome`, Simplelenium will download [chromedriver](https://code.google.com/p/selenium/wiki/ChromeDriver)
+If you choose `chrome`, Simplerlenium will download [chromedriver](https://code.google.com/p/selenium/wiki/ChromeDriver)
 automatically for you.
 
 If you don't choose `phantomjs`, then you have to manually install Firefox or Chrome. Make sure you install them
@@ -415,18 +414,18 @@ the following System properties :
 * `phantomjs.url` : url where to download phantomjs ie: https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-1.9.8-windows.zip 
 * `phantomjs.exe` : relative path where the executable is from the compressed archive. ie: phantomjs-1.9.8-windows/phantomjs.exe
 
-## What Simplelenium doesn't do
+## What Simplerlenium doesn't do
 
 ### Reading properties from web elements
 
 Sometimes, you want to read a property of a web element and use your own
-assertions framework to verify if it's ok. That's not how Simplelenium works.
+assertions framework to verify if it's ok. That's not how Simplerlenium works.
 You should be able to expect what the element will look like and tell
-Simplelenium to check. Otherwise you might extract a value a bit too soon and
+Simplerlenium to check. Otherwise you might extract a value a bit too soon and
 there you are, back into timing hell, with false negative tests. You don't want
 that. Trust me.
 
-Here's the Simplelenium way of doing this:
+Here's the Simplerlenium way of doing this:
 
 ```java
 find("...").should().match(element -> /* Test something on every element found /*);
