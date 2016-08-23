@@ -15,6 +15,8 @@
  */
 package net.codestory.simplelenium;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeDiagnosingMatcher;
 import org.junit.Before;
@@ -25,7 +27,6 @@ import org.junit.rules.ExpectedException;
 import java.util.regex.Pattern;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.stream.Stream.of;
 import static org.junit.rules.ExpectedException.none;
 
 public class ErrorMessagesTest extends AbstractTest {
@@ -133,7 +134,13 @@ public class ErrorMessagesTest extends AbstractTest {
     thrown.expect(new TypeSafeDiagnosingMatcher<AssertionError>() {
       @Override
       protected boolean matchesSafely(AssertionError error, Description mismatchDescription) {
-        return of(error.getStackTrace()).noneMatch(element -> element.getClassName().contains("net.codestory.simplelenium.filters."));
+        return !FluentIterable.of(error.getStackTrace())
+            .anyMatch(new Predicate<StackTraceElement>() {
+              @Override
+              public boolean apply(StackTraceElement element) {
+                return element.getClassName().contains("net.codestory.simplelenium.filters.");
+              }
+            });
       }
 
       @Override

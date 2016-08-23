@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013-2015 all@code-story.net
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,7 +15,9 @@
  */
 package net.codestory.simplelenium.filters;
 
-import java.util.function.Predicate;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+
 import java.util.regex.Pattern;
 
 class StringPredicates {
@@ -24,39 +26,74 @@ class StringPredicates {
   }
 
   public static Predicate<String> isEmpty() {
-    return value -> (value == null) || "".equals(value);
+    return new Predicate<String>() {
+      @Override
+      public boolean apply(final String value) {
+        return value == null || "".equals(value);
+      }
+    };
   }
 
   public static Predicate<String> isNull() {
-    return value -> (value == null);
+    return Predicates.isNull();
   }
 
-  public static Predicate<String> equalsTo(String text) {
-    return value -> value.equals(text);
+  public static Predicate<String> equalsTo(final String text) {
+    return new Predicate<String>() {
+      @Override
+      public boolean apply(final String value) {
+        return value.equals(text);
+      }
+    };
   }
 
-  public static Predicate<String> contains(String text) {
-    return value -> value.contains(text);
+  public static Predicate<String> contains(final String text) {
+    return new Predicate<String>() {
+      @Override
+      public boolean apply(final String value) {
+        return value.contains(text);
+      }
+    };
   }
 
-  public static Predicate<String> contains(Pattern regex) {
-    return value -> regex.matcher(value).find();
+  public static Predicate<String> contains(final Pattern regex) {
+    return new Predicate<String>() {
+      @Override
+      public boolean apply(final String value) {
+        return regex.matcher(value).find();
+      }
+    };
   }
 
   public static Predicate<String> containsWord(String word) {
-    Pattern pattern = Pattern.compile("\\b(" + word + ")\\b");
-    return value -> pattern.matcher(value).find();
+    final Pattern pattern = Pattern.compile("\\b(" + word + ")\\b");
+    return contains(pattern);
   }
 
-  public static Predicate<String> startsWith(String text) {
-    return value -> value.startsWith(text);
+  public static Predicate<String> startsWith(final String text) {
+    return new Predicate<String>() {
+      @Override
+      public boolean apply(final String value) {
+        return value.startsWith(text);
+      }
+    };
   }
 
-  public static Predicate<String> endsWith(String text) {
-    return value -> value.endsWith(text);
+  public static Predicate<String> endsWith(final String text) {
+    return new Predicate<String>() {
+      @Override
+      public boolean apply(final String value) {
+        return value.endsWith(text);
+      }
+    };
   }
 
-  public static Predicate<String> matches(Pattern regex) {
-    return value -> regex.matcher(value).matches();
+  public static Predicate<String> matches(final Pattern regex) {
+    return new Predicate<String>() {
+      @Override
+      public boolean apply(final String value) {
+        return regex.matcher(value).matches();
+      }
+    };
   }
 }

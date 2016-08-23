@@ -73,7 +73,7 @@ public class PageObjectTest {
     private ThePage privatePage;
   }
 
-  private static class ThePage implements PageObject {
+  private static class ThePage extends PageObject {
     final DomElement h1 = find("h1");
     final DomElement h4 = find("h4");
     DomElement name;
@@ -87,17 +87,17 @@ public class PageObjectTest {
     }
   }
 
-  private static class Section implements SectionObject {
+  private static class Section extends SectionObject {
     DomElement name;
     DomElement age = find(".age");
     SubSection subSection;
   }
 
-  private static class SubSection implements SectionObject {
+  private static class SubSection extends SectionObject {
     DomElement name;
   }
 
-  private static class AnotherSection implements SectionObject {
+  private static class AnotherSection extends SectionObject {
     CustomDomElement name;
   }
 

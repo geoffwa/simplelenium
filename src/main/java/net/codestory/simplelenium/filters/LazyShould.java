@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013-2015 all@code-story.net
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,30 +15,26 @@
  */
 package net.codestory.simplelenium.filters;
 
+import com.google.common.base.*;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import net.codestory.simplelenium.DomElement;
 import net.codestory.simplelenium.ShouldChain;
 import net.codestory.simplelenium.selectors.ByCssSelectorOrByNameOrById;
 import net.codestory.simplelenium.text.Text;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
-import org.openqa.selenium.Point;
 import org.openqa.selenium.WebElement;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static java.lang.String.join;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Stream.of;
-import static net.codestory.simplelenium.filters.WebElementHelper.text;
+import static net.codestory.simplelenium.filters.WebElementHelper.*;
 import static net.codestory.simplelenium.text.Text.plural;
 
-class LazyShould implements ShouldChain {
+class LazyShould extends ShouldChain {
   private final LazyDomElement element;
   private final Retry retry;
   private final boolean ok;
@@ -90,109 +86,280 @@ class LazyShould implements ShouldChain {
   // Expectations
 
   @Override
-  public LazyShould contain(String... texts) {
+  public LazyShould contain(final String... texts) {
     return verify(
-      doesOrNot("contain") + " (" + join(";", texts) + ")",
-      elements -> of(texts).allMatch(expected -> {
-        return elements.stream().anyMatch(element -> text(element).contains(expected));
-      }),
-      elements -> "It contains " + statuses(elements, element -> text(element)));
+        doesOrNot("contain") + " (" + Joiner.on(';').join(texts) + ")",
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(final List<WebElement> webElements) {
+            return FluentIterable.of(texts).allMatch(
+                new Predicate<String>() {
+                  @Override
+                  public boolean apply(final String expected) {
+                    return FluentIterable.from(webElements).anyMatch(CONTAINS_TEXT(expected));
+                  }
+                }
+            );
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It contains " + statuses(webElements, TEXT);
+          }
+        });
   }
 
   @Override
   public LazyShould beEmpty() {
     return verify(
-      isOrNot("empty"),
-      elements -> !elements.isEmpty() && elements.stream().allMatch(element -> text(element).isEmpty()),
-      elements -> "It contains " + statuses(elements, element -> text(element)));
+        isOrNot("empty"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty() && FluentIterable.from(webElements).allMatch(new Predicate<WebElement>() {
+              @Override
+              public boolean apply(WebElement webElement) {
+                return text(webElement).isEmpty();
+              }
+            });
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It contains " + statuses(webElements, TEXT);
+          }
+        });
   }
 
   @Override
-  public LazyShould match(Pattern regexp) {
+  public LazyShould match(final Pattern regexp) {
     return verify(
-      doesOrNot("match") + " (" + regexp.pattern() + ")",
-      elements -> !elements.isEmpty() && elements.stream().anyMatch(element -> regexp.matcher(text(element)).matches()),
-      elements -> "It contains " + statuses(elements, element -> text(element)));
+        doesOrNot("match") + " (" + regexp.pattern() + ")",
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty() && FluentIterable.from(webElements).anyMatch(new Predicate<WebElement>() {
+              @Override
+              public boolean apply(WebElement webElement) {
+                return regexp.matcher(text(webElement)).matches();
+              }
+            });
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It contains " + statuses(webElements, TEXT);
+          }
+        });
   }
 
   @Override
   public LazyShould beEnabled() {
     return verify(
-      isOrNot("enabled"),
-      elements -> !elements.isEmpty() && elements.stream().allMatch(element -> element.isEnabled()),
-      elements -> "It is " + statuses(elements, element -> enabledStatus(element)));
+        isOrNot("enabled"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty() && FluentIterable.from(webElements).allMatch(new Predicate<WebElement>() {
+              @Override
+              public boolean apply(WebElement webElement) {
+                return webElement.isEnabled();
+              }
+            });
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It is " + statuses(webElements, new Function<WebElement, String>() {
+              @Override
+              public String apply(WebElement element) {
+                return enabledStatus(element);
+              }
+            });
+          }
+        });
   }
 
   @Override
   public LazyShould beDisplayed() {
     return verify(
-      isOrNot("displayed"),
-      elements -> !elements.isEmpty() && elements.stream().allMatch(element -> element.isDisplayed()),
-      elements -> "It is " + statuses(elements, element -> displayedStatus(element)));
+        isOrNot("displayed"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty() && FluentIterable.from(webElements).allMatch(ElementPredicates.IS_DISPLAYED);
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It is " + statuses(webElements, new Function<WebElement, String>() {
+                  @Override
+                  public String apply(WebElement webElement) {
+                    return displayedStatus(webElement);
+                  }
+                });
+          }
+        });
   }
 
   @Override
   public LazyShould beSelected() {
     return verify(
-      isOrNot("selected"),
-      elements -> !elements.isEmpty() && elements.stream().allMatch(element -> isSelected(element)),
-      elements -> "It is " + statuses(elements, element -> selectedStatus(element)));
+        isOrNot("selected"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty() && FluentIterable.from(webElements).allMatch(ElementPredicates.IS_SELECTED);
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It is " + statuses(webElements, new Function<WebElement, String>() {
+              @Override
+              public String apply(WebElement webElement) {
+                return selectedStatus(webElement);
+              }
+            });
+          }
+        });
   }
 
   @Override
-  public LazyShould haveLessItemsThan(int maxCount) {
+  public LazyShould haveLessItemsThan(final int maxCount) {
     return verify(
-      doesOrNot("contain") + " less than " + plural(maxCount, "element"),
-      elements -> elements.size() < maxCount,
-      elements -> "It contains " + plural(elements.size(), "element"));
+        doesOrNot("contain") + " less than " + plural(maxCount, "element"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return webElements.size() < maxCount;
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It contains " + plural(webElements.size(), "element");
+          }
+        });
   }
 
   @Override
-  public LazyShould haveSize(int size) {
+  public LazyShould haveSize(final int size) {
     return verify(
-      doesOrNot("contain") + " " + plural(size, "element"),
-      elements -> elements.size() == size,
-      elements -> "It contains " + plural(elements.size(), "element"));
+        doesOrNot("contain") + " " + plural(size, "element"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return webElements.size() == size;
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It contains " + plural(webElements.size(), "element");
+          }
+        });
   }
 
   @Override
-  public LazyShould haveMoreItemsThan(int minCount) {
+  public LazyShould haveMoreItemsThan(final int minCount) {
     return verify(
-      doesOrNot("contain") + " more than " + plural(minCount, "element"),
-      elements -> elements.size() > minCount,
-      elements -> "It contains " + plural(elements.size(), "element"));
+        doesOrNot("contain") + " more than " + plural(minCount, "element"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return webElements.size() > minCount;
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It contains " + plural(webElements.size(), "element");
+          }
+        });
   }
 
   @Override
   public LazyShould exist() {
     return verify(
-      doesOrNot("exist"),
-      elements -> !elements.isEmpty(),
-      elements -> "It contains " + plural(elements.size(), "element"));
+        doesOrNot("exist"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty();
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It contains " + plural(webElements.size(), "element");
+          }
+        });
   }
 
   @Override
-  public LazyShould haveDimension(int width, int height) {
+  public LazyShould haveDimension(final int width, final int height) {
     return verify(
-      hasOrNot("dimension"),
-      elements -> !elements.isEmpty() && elements.stream().allMatch(element -> hasDimension(element, width, height)),
-      elements -> "It measures " + statuses(elements, element -> dimension(element)));
+        hasOrNot("dimension"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty() && FluentIterable.from(webElements).allMatch(HAS_DIMENSION(width, height));
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It measures " + statuses(webElements, ElementFunctions.DIMENSION);
+          }
+        });
   }
 
   @Override
-  public LazyShould beAtLocation(int x, int y) {
+  public LazyShould beAtLocation(final int x, final int y) {
     return verify(
-      isOrNot("at location"),
-      elements -> !elements.isEmpty() && elements.stream().allMatch(element -> hasLocation(element, x, y)),
-      elements -> "It is at location " + statuses(elements, element -> location(element)));
+        isOrNot("at location"),
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty() && FluentIterable.from(webElements).allMatch(ElementPredicates.HAS_LOCATION(x, y));
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> webElements) {
+            return "It is at location " + statuses(webElements, ElementFunctions.LOCATION);
+          }
+        });
   }
 
   @Override
-  public LazyShould match(Predicate<WebElement> condition) {
+  public LazyShould match(final Predicate<WebElement> condition) {
+
     return verify(
-      doesOrNot("match") + " (" + condition + ")",
-      elements -> !elements.isEmpty() && elements.stream().allMatch(condition),
-      elements -> "It is  " + statuses(elements, element -> Boolean.toString(condition.test(element))));
+        doesOrNot("match") + " (" + condition + ")",
+        new Predicate<List<WebElement>>() {
+          @Override
+          public boolean apply(List<WebElement> webElements) {
+            return !webElements.isEmpty() && FluentIterable.from(webElements).allMatch(condition);
+          }
+        },
+        new Function<List<WebElement>, String>() {
+          @Override
+          public String apply(List<WebElement> elements) {
+            return "It is  " + statuses(elements, new Function<WebElement, String>() {
+              @Override
+              public String apply(WebElement webElement) {
+                return Boolean.toString(condition.apply(webElement));
+              }
+            });
+          }
+        });
   }
 
   private LazyShould verify(String message, Predicate<List<WebElement>> predicate, Function<List<WebElement>, String> toErrorMessage) {
@@ -200,7 +367,7 @@ class LazyShould implements ShouldChain {
     System.out.println("   -> " + verification);
 
     try {
-      if (!retry.verify(() -> findElements(), ok ? predicate : predicate.negate())) {
+      if (!retry.verify(lazyFindElements(), ok ? predicate : Predicates.not(predicate))) {
         throw Failure.create("Failed to " + verification + ". " + toErrorMessage.apply(findElements()));
       }
     } catch (NoSuchElementException e) {
@@ -213,7 +380,16 @@ class LazyShould implements ShouldChain {
   // Internal
 
   private List<WebElement> findElements() {
-    return element.stream().collect(Collectors.toList());
+    return ImmutableList.copyOf(element.iterable());
+  }
+
+  private Supplier<List<WebElement>> lazyFindElements() {
+    return new Supplier<List<WebElement>>() {
+      @Override
+      public List<WebElement> get() {
+        return findElements();
+      }
+    };
   }
 
   private String doesOrNot(String verb) {
@@ -228,22 +404,20 @@ class LazyShould implements ShouldChain {
     return Text.hasOrNot(!ok, what);
   }
 
-  private static boolean hasDimension(WebElement element, int width, int height) {
-    Dimension dimension = element.getSize();
-    return dimension.getWidth() == width && dimension.getHeight() == height;
+  private static Predicate<WebElement> HAS_DIMENSION(final int width, final int height) {
+    return new Predicate<WebElement>() {
+      @Override
+      public boolean apply(WebElement webElement) {
+        Dimension dimension = webElement.getSize();
+        return dimension.getWidth() == width && dimension.getHeight() == height;
+      }
+    };
   }
 
-  private static boolean hasLocation(WebElement element, int x, int y) {
-    Point location = element.getLocation();
-    return location.getX() == x && location.getY() == y;
-  }
-
-  private static boolean isSelected(WebElement element) {
-    return isSelectable(element) && element.isSelected();
-  }
-
-  private static String statuses(List<WebElement> elements, Function<WebElement, String> toStatus) {
-    return elements.stream().map(toStatus).collect(joining(";", "(", ")"));
+  private static String statuses(List<WebElement> elements, final Function<WebElement, String> toStatus) {
+    return "(" + FluentIterable.from(elements)
+        .transform(toStatus)
+        .join(Joiner.on(';')) + ")";
   }
 
   private static String enabledStatus(WebElement element) {
@@ -254,19 +428,12 @@ class LazyShould implements ShouldChain {
     return element.isDisplayed() ? "displayed" : "not displayed";
   }
 
-  private static String dimension(WebElement element) {
-    return element.getSize().toString();
-  }
-
-  private static String location(WebElement element) {
-    return element.getLocation().toString();
-  }
-
   private static String selectedStatus(WebElement element) {
-    return isSelectable(element) ? element.isSelected() ? "selected" : "not selected" : "not selectable";
+    if (!ElementPredicates.IS_SELECTABLE.apply(element)) {
+      return "not selectable";
+    }
+
+    return element.isSelected() ? "selected" : "not selected";
   }
 
-  private static boolean isSelectable(WebElement element) {
-    return element.getTagName().equals("input") || element.getTagName().equals("option");
-  }
 }

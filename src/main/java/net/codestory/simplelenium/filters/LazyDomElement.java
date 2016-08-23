@@ -15,6 +15,14 @@
  */
 package net.codestory.simplelenium.filters;
 
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import net.codestory.simplelenium.BiConsumer;
+import net.codestory.simplelenium.Consumer;
 import net.codestory.simplelenium.DomElement;
 import net.codestory.simplelenium.Should;
 import net.codestory.simplelenium.selectors.ByCssSelectorOrByNameOrById;
@@ -25,15 +33,44 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.Select;
 
+import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.*;
-import java.util.stream.Stream;
 
 import static net.codestory.simplelenium.filters.WebElementHelper.text;
 
-public class LazyDomElement implements DomElement {
+public class LazyDomElement extends DomElement {
+  private static final Function<WebElement, String> GET_ELEMENT_TEXT = new Function<WebElement, String>() {
+    @Override
+    public String apply(WebElement webElement) {
+      return text(webElement);
+    }
+  };
+  private static final Function<WebElement, String> GET_ELEMENT_ID_ATTR = new Function<WebElement, String>() {
+    @Override
+    public String apply(WebElement webElement) {
+      return webElement.getAttribute("id");
+    }
+  };
+  private static final Function<WebElement, String> GET_ELEMENT_NAME_ATTR = new Function<WebElement, String>() {
+    @Override
+    public String apply(WebElement webElement) {
+      return webElement.getAttribute("name");
+    }
+  };
+  private static final Function<WebElement, String> GET_ELEMENT_TAG_NAME = new Function<WebElement, String>() {
+    @Override
+    public String apply(WebElement webElement) {
+      return webElement.getTagName();
+    }
+  };
+  private static final Function<WebElement, String> GET_ELEMENT_CLASS_ATTR = new Function<WebElement, String>() {
+    @Override
+    public String apply(WebElement webElement) {
+      return webElement.getAttribute("class");
+    }
+  };
+
   private final LazyDomElement parent;
   private final By selector;
   private final ElementFilter filter;
@@ -64,10 +101,12 @@ public class LazyDomElement implements DomElement {
 
   // Nested find
 
+  @Override
   public DomElement find(String selector) {
     return new LazyDomElement(this, new ByCssSelectorOrByNameOrById(selector));
   }
 
+  @Override
   public DomElement find(By selector) {
     return new LazyDomElement(this, selector);
   }
@@ -76,43 +115,48 @@ public class LazyDomElement implements DomElement {
 
   @Override
   public ElementFilterBuilder withText() {
-    Function<WebElement, String> toValue = element -> text(element);
-    return with("text", toValue);
+    return with("text", GET_ELEMENT_TEXT);
   }
 
   @Override
   public ElementFilterBuilder withId() {
-    Function<WebElement, String> toValue = element -> element.getAttribute("id");
-    return with("id", toValue);
+    return with("id", GET_ELEMENT_ID_ATTR);
   }
 
   @Override
   public ElementFilterBuilder withName() {
-    Function<WebElement, String> toValue = element -> element.getAttribute("name");
-    return with("name", toValue);
+    return with("name", GET_ELEMENT_NAME_ATTR);
   }
 
   @Override
   public ElementFilterBuilder withTagName() {
-    Function<WebElement, String> toValue = element -> element.getTagName();
-    return with("tag name", toValue);
+    return with("tag name", GET_ELEMENT_TAG_NAME);
   }
 
   @Override
   public ElementFilterBuilder withClass() {
-    Function<WebElement, String> toValue = element -> element.getAttribute("class");
-    return with("class", toValue);
+    return with("class", GET_ELEMENT_CLASS_ATTR);
   }
 
   @Override
-  public ElementFilterBuilder with(String name) {
-    Function<WebElement, String> toValue = element -> element.getAttribute(name);
+  public ElementFilterBuilder with(final String name) {
+    Function<WebElement, String> toValue = new Function<WebElement, String>() {
+      @Override
+      public String apply(WebElement webElement) {
+        return webElement.getAttribute(name);
+      }
+    };
     return with("attribute[" + name + "]", toValue);
   }
 
   @Override
-  public ElementFilterBuilder withCss(String name) {
-    Function<WebElement, String> toValue = element -> element.getCssValue(name);
+  public ElementFilterBuilder withCss(final String name) {
+    Function<WebElement, String> toValue = new Function<WebElement, String>() {
+      @Override
+      public String apply(WebElement webElement) {
+        return webElement.getCssValue(name);
+      }
+    };
     return with("cssValue[" + name + "]", toValue);
   }
 
@@ -159,7 +203,8 @@ public class LazyDomElement implements DomElement {
   }
 
   @Override
-  public LazyDomElement filter(String description, UnaryOperator<Stream<WebElement>> filter) {
+  public LazyDomElement filter(String description,
+                               Function<Iterable<WebElement>, Iterable<WebElement>> filter) {
     return with(new ElementFilter(", " + description, filter));
   }
 
@@ -177,153 +222,290 @@ public class LazyDomElement implements DomElement {
   // Actions
 
   @Override
-  public LazyDomElement fill(CharSequence text) {
-    return execute("fill(" + text + ")", element -> {
-      element.clear();
-      element.sendKeys(text);
+  public LazyDomElement fill(final CharSequence text) {
+    return execute("fill(" + text + ")", new Consumer<WebElement>() {
+      @Override
+      public void accept(WebElement webElement) {
+        webElement.clear();
+        webElement.sendKeys(text);
+      }
     });
   }
 
   @Override
-  public LazyDomElement append(CharSequence text) {
-    return execute("append(" + text + ")", element -> element.sendKeys(text));
+  public LazyDomElement append(final CharSequence text) {
+    return execute("append(" + text + ")",
+        new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            webElement.sendKeys(text);
+          }
+        });
   }
 
   @Override
   public LazyDomElement pressReturn() {
-    return execute("pressReturn()", element -> element.sendKeys(Keys.RETURN));
+    return execute("pressReturn()",
+        new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            webElement.sendKeys(Keys.RETURN);
+          }
+        });
   }
 
   @Override
   public LazyDomElement pressEnter() {
-    return execute("pressEnter()", element -> element.sendKeys(Keys.ENTER));
+    return execute("pressEnter()",
+        new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            webElement.sendKeys(Keys.ENTER);
+          }
+        });
   }
 
   @Override
-  public LazyDomElement sendKeys(CharSequence... keysToSend) {
-    return execute("sendKeys()", element -> element.sendKeys(keysToSend));
+  public LazyDomElement sendKeys(final CharSequence... keysToSend) {
+    return execute("sendKeys()",
+        new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            webElement.sendKeys(keysToSend);
+          }
+        });
   }
 
   @Override
   public LazyDomElement clear() {
-    return execute("clear()", element -> element.clear());
+    return execute("clear()",
+        new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            webElement.clear();
+          }
+        });
   }
 
   @Override
   public LazyDomElement submit() {
-    return execute("submit", element -> element.submit());
+    return execute("submit",
+        new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            webElement.submit();
+          }
+        });
   }
 
   @Override
   public LazyDomElement click() {
-    return execute("click", element -> element.click());
+    return execute("click",
+        new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            webElement.click();
+          }
+        });
   }
 
   @Override
   public LazyDomElement check() {
-    return execute("check", element -> {
-      if (!element.isSelected()) {
-        element.click();
+    return execute("check", new Consumer<WebElement>() {
+      @Override
+      public void accept(WebElement webElement) {
+        if (!webElement.isSelected())
+          webElement.click();
       }
     });
   }
 
   @Override
   public LazyDomElement uncheck() {
-    return execute("uncheck", element -> {
-      if (element.isSelected()) {
-        element.click();
+    return execute("uncheck", new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            if (webElement.isSelected())
+              webElement.click();
+          }
+        });
+  }
+
+  @Override
+  public LazyDomElement click(final int x, final int y) {
+    return executeActions("click(" + x + "," + y + ")",
+        new BiConsumer<WebElement, Actions>() {
+          @Override
+          public void accept(WebElement webElement, Actions actions) {
+            actions.moveToElement(webElement, x, y).click();
+          }
+        });
+  }
+
+  @Override
+  public LazyDomElement doubleClick() {
+    return executeActions("doubleClick",
+        new BiConsumer<WebElement, Actions>() {
+          @Override
+          public void accept(WebElement webElement, Actions actions) {
+            actions.doubleClick(webElement);
+          }
+        });
+  }
+
+  @Override
+  public LazyDomElement doubleClick(final int x, final int y) {
+    return executeActions("doubleClick(" + x + "," + y + ")",
+        new BiConsumer<WebElement, Actions>() {
+          @Override
+          public void accept(WebElement webElement, Actions actions) {
+            actions.moveToElement(webElement, x, y).doubleClick();
+          }
+        });
+  }
+
+  @Override
+  public LazyDomElement clickAndHold() {
+    return executeActions("clickAndHold", new BiConsumer<WebElement, Actions>() {
+      @Override
+      public void accept(WebElement webElement, Actions actions) {
+        actions.clickAndHold(webElement);
       }
     });
   }
 
   @Override
-  public LazyDomElement click(int x, int y) {
-    return executeActions("click(" + x + "," + y + ")", (element, actions) -> actions.moveToElement(element, x, y).click());
-  }
-
-  @Override
-  public LazyDomElement doubleClick() {
-    return executeActions("doubleClick", (element, actions) -> actions.doubleClick(element));
-  }
-
-  @Override
-  public LazyDomElement doubleClick(int x, int y) {
-    return executeActions("doubleClick(" + x + "," + y + ")", (element, actions) -> actions.moveToElement(element, x, y).doubleClick());
-  }
-
-  @Override
-  public LazyDomElement clickAndHold() {
-    return executeActions("clickAndHold", (element, actions) -> actions.clickAndHold(element));
-  }
-
-  @Override
-  public LazyDomElement dragAndDropTo(String destinationSelector) {
-    return executeActions("dragAndDropTo(" + destinationSelector + ")", (element, actions) -> actions
-      .clickAndHold(element)
-      .pause(100)
-      .release(driver().findElementByCssSelector(destinationSelector)));
+  public LazyDomElement dragAndDropTo(final String destinationSelector) {
+    return executeActions("dragAndDropTo(" + destinationSelector + ")", new BiConsumer<WebElement, Actions>() {
+      @Override
+      public void accept(WebElement webElement, Actions actions) {
+        actions.clickAndHold(webElement)
+            .pause(100)
+            .release(driver().findElementByCssSelector(destinationSelector));
+      }
+    });
   }
 
   @Override
   public LazyDomElement contextClick() {
-    return executeActions("contextClick", (element, actions) -> actions.contextClick(element));
+    return executeActions("contextClick", new BiConsumer<WebElement, Actions>() {
+      @Override
+      public void accept(WebElement webElement, Actions actions) {
+        actions.contextClick(webElement);
+      }
+    });
   }
 
   @Override
   public LazyDomElement release() {
-    return executeActions("release", (element, actions) -> actions.release(element));
+    return executeActions("release", new BiConsumer<WebElement, Actions>() {
+      @Override
+      public void accept(WebElement webElement, Actions actions) {
+        actions.release(webElement);
+      }
+    });
   }
 
   @Override
-  public LazyDomElement executeActions(String description, BiConsumer<WebElement, Actions> actionsOnElement) {
-    return execute(description, element -> {
-      Actions actions = new Actions(driver());
-      actionsOnElement.accept(element, actions);
-      actions.build().perform();
-    });
+  public LazyDomElement executeActions(String description, final BiConsumer<WebElement, Actions> actionsOnElement) {
+    return execute(description, new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            Actions actions = new Actions(driver());
+            actionsOnElement.accept(webElement, actions);
+            actions.build().perform();
+          }
+        });
   }
 
   // Selection
 
   @Override
-  public LazyDomElement select(String text) {
-    return executeSelect("select(" + text + ")", select -> select.selectByVisibleText(text));
+  public LazyDomElement select(final String text) {
+    return executeSelect("select(" + text + ")",
+        new Consumer<Select>() {
+          @Override
+          public void accept(Select select) {
+            select.selectByVisibleText(text);
+          }
+        });
   }
 
   @Override
   public LazyDomElement deselect() {
-    return executeSelect("deselect()", select -> select.deselectAll());
+    return executeSelect("deselect()",
+        new Consumer<Select>() {
+          @Override
+          public void accept(Select select) {
+            select.deselectAll();
+          }
+        });
   }
 
   @Override
-  public LazyDomElement deselectByValue(String value) {
-    return executeSelect("deselectByValue(" + value + ")", select -> select.deselectByValue(value));
+  public LazyDomElement deselectByValue(final String value) {
+    return executeSelect("deselectByValue(" + value + ")",
+        new Consumer<Select>() {
+          @Override
+          public void accept(Select select) {
+            select.deselectByValue(value);
+          }
+        });
   }
 
   @Override
-  public LazyDomElement deselectByVisibleText(String text) {
-    return executeSelect("deselectByVisibleText(" + text + ")", select -> select.deselectByVisibleText(text));
+  public LazyDomElement deselectByVisibleText(final String text) {
+    return executeSelect("deselectByVisibleText(" + text + ")",
+        new Consumer<Select>() {
+          @Override
+          public void accept(Select select) {
+            select.deselectByVisibleText(text);
+          }
+        });
   }
 
   @Override
-  public LazyDomElement deselectByIndex(int index) {
-    return executeSelect("deselectByIndex(" + index + ")", select -> select.deselectByIndex(index));
+  public LazyDomElement deselectByIndex(final int index) {
+    return executeSelect("deselectByIndex(" + index + ")",
+        new Consumer<Select>() {
+          @Override
+          public void accept(Select select) {
+            select.deselectByIndex(index);
+          }
+        });
   }
 
   @Override
-  public LazyDomElement selectByIndex(int index) {
-    return executeSelect("selectByIndex(" + index + ")", select -> select.selectByIndex(index));
+  public LazyDomElement selectByIndex(final int index) {
+    return executeSelect("selectByIndex(" + index + ")",
+        new Consumer<Select>() {
+          @Override
+          public void accept(Select select) {
+            select.selectByIndex(index);
+          }
+        });
   }
 
   @Override
-  public LazyDomElement selectByValue(String value) {
-    return executeSelect("selectByValue(" + value + ")", select -> select.selectByValue(value));
+  public LazyDomElement selectByValue(final String value) {
+    return executeSelect("selectByValue(" + value + ")",
+        new Consumer<Select>() {
+          @Override
+          public void accept(Select select) {
+            select.selectByValue(value);
+          }
+        });
   }
 
   @Override
-  public LazyDomElement executeSelect(String description, Consumer<Select> selectOnElement) {
-    return execute(description, element -> selectOnElement.accept(new Select(element)));
+  public LazyDomElement executeSelect(String description, final Consumer<Select> selectOnElement) {
+    return execute(description,
+        new Consumer<WebElement>() {
+          @Override
+          public void accept(WebElement webElement) {
+            selectOnElement.accept(new Select(webElement));
+          }
+        });
   }
 
   // Actions on low level elements
@@ -345,7 +527,13 @@ public class LazyDomElement implements DomElement {
   private LazyDomElement execute(String message, Consumer<WebElement> action) {
     System.out.println(" - " + Text.toString(selector) + filter.getDescription() + "." + message);
 
-    Supplier<Optional<WebElement>> findOne = () -> stream().findFirst();
+    Supplier<Optional<WebElement>> findOne = new Supplier<Optional<WebElement>>() {
+      @Override
+      public Optional<WebElement> get() {
+        return Optional.fromNullable(Iterables.getFirst(iterable(), null));
+      }
+    };
+
     try {
       retry.execute(findOne, action);
     } catch (NoSuchElementException e) {
@@ -373,13 +561,20 @@ public class LazyDomElement implements DomElement {
     return parent;
   }
 
-  Stream<WebElement> stream() {
-    Stream<WebElement> webElements;
+  Iterable<WebElement> iterable() {
+    Iterator<WebElement> webElements;
     if (parent != null) {
-      webElements = parent.stream().flatMap(element -> element.findElements(selector).stream());
+      webElements = FluentIterable.from(parent.iterable())
+          .transformAndConcat(new Function<WebElement, Iterable<WebElement>>() {
+            @Override
+            public Iterable<WebElement> apply(WebElement input) {
+              return input.findElements(selector);
+            }
+          }).iterator();
     } else {
-      webElements = driver().findElements(selector).stream();
+      webElements = driver().findElements(selector).iterator();
     }
-    return filter.getFilter().apply(webElements);
+
+    return filter.getFilter().apply(ImmutableList.copyOf(webElements));
   }
 }

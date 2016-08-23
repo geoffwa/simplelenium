@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013-2015 all@code-story.net
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,49 +15,81 @@
  */
 package net.codestory.simplelenium.filters;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.openqa.selenium.WebElement;
 
-import java.util.Iterator;
-import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
+import java.util.Collections;
 
 class StreamFilters {
   private StreamFilters() {
     // Static class
   }
 
-  public static UnaryOperator<Stream<WebElement>> first() {
-    return stream -> stream.limit(1);
-  }
+  private static class SkipLimit implements Function<Iterable<WebElement>, Iterable<WebElement>> {
 
-  public static UnaryOperator<Stream<WebElement>> second() {
-    return stream -> stream.skip(1).limit(1);
-  }
+    private final int skip;
+    private final int limit;
 
-  public static UnaryOperator<Stream<WebElement>> third() {
-    return stream -> stream.skip(2).limit(1);
-  }
+    private SkipLimit(int skip, int limit) {
+      this.skip = skip;
+      this.limit = limit;
+    }
 
-  public static UnaryOperator<Stream<WebElement>> nth(int index) {
-    return stream -> stream.skip(index - 1).limit(1);
-  }
-
-  public static UnaryOperator<Stream<WebElement>> limit(int max) {
-    return stream -> stream.limit(max);
-  }
-
-  public static UnaryOperator<Stream<WebElement>> skip(int count) {
-    return stream -> stream.skip(count);
-  }
-
-  public static UnaryOperator<Stream<WebElement>> last() {
-    return stream -> {
-      Iterator<WebElement> iterator = stream.iterator();
-      WebElement last = null;
-      while (iterator.hasNext()) {
-        last = iterator.next();
+    @Override
+    public Iterable<WebElement> apply(Iterable<WebElement> elements) {
+      if (skip >= 0) {
+        elements = Iterables.skip(elements, skip);
       }
-      return (last == null) ? Stream.empty() : Stream.of(last);
+      if (limit >= 0) {
+        elements = Iterables.limit(elements, limit);
+      }
+      return elements;
+    }
+  }
+
+  public static Function<Iterable<WebElement>, Iterable<WebElement>> first() {
+    return new SkipLimit(0, 1);
+  }
+
+  public static Function<Iterable<WebElement>, Iterable<WebElement>> second() {
+    return new SkipLimit(1, 1);
+  }
+
+  public static Function<Iterable<WebElement>, Iterable<WebElement>> third() {
+    return new SkipLimit(2, 1);
+  }
+
+  public static Function<Iterable<WebElement>, Iterable<WebElement>> nth(int index) {
+    return new SkipLimit(index - 1, 1);
+  }
+
+  public static Function<Iterable<WebElement>, Iterable<WebElement>> limit(final int max) {
+    return new Function<Iterable<WebElement>, Iterable<WebElement>>() {
+      @Override
+      public Iterable<WebElement> apply(Iterable<WebElement> elements) {
+        return Iterables.limit(elements, max);
+      }
     };
+  }
+
+  public static Function<Iterable<WebElement>, Iterable<WebElement>> skip(final int count) {
+    return new Function<Iterable<WebElement>, Iterable<WebElement>>() {
+      @Override
+      public Iterable<WebElement> apply(Iterable<WebElement> elements) {
+        return Iterables.skip(elements, count);
+      }
+    };
+  }
+
+  public static Function<Iterable<WebElement>, Iterable<WebElement>> last() {
+    return new Function<Iterable<WebElement>, Iterable<WebElement>>() {
+      @Override
+      public Iterable<WebElement> apply(Iterable<WebElement> elements) {
+        WebElement last = Iterables.getLast(elements, null);
+        return (last == null) ? Collections.<WebElement>emptySet() : Collections.singleton(last);
+      }
+    };
+
   }
 }

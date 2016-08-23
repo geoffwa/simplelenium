@@ -15,10 +15,18 @@
  */
 package net.codestory.simplelenium.filters;
 
-import static java.util.stream.Stream.of;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 
 class Failure {
   private static final String PREFIX = Failure.class.getPackage().getName() + ".";
+
+  private static final Predicate<StackTraceElement> CLASS_NAME_NOT_CONTAINS_PREFIX = new Predicate<StackTraceElement>() {
+    @Override
+    public boolean apply(StackTraceElement element) {
+      return !element.getClassName().contains(PREFIX);
+    }
+  };
 
   private Failure() {
     // Static class
@@ -32,7 +40,9 @@ class Failure {
 
   private static void removeSimpleleniumFromStackTrace(Throwable throwable) {
     StackTraceElement[] stackTrace = throwable.getStackTrace();
-    StackTraceElement[] filtered = of(stackTrace).filter(element -> !element.getClassName().contains(PREFIX)).toArray(StackTraceElement[]::new);
+    StackTraceElement[] filtered = FluentIterable.of(stackTrace)
+            .filter(CLASS_NAME_NOT_CONTAINS_PREFIX)
+            .toArray(StackTraceElement.class);
     throwable.setStackTrace(filtered);
   }
 }

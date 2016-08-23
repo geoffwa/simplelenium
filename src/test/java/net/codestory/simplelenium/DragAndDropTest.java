@@ -25,7 +25,7 @@ public class DragAndDropTest extends AbstractTest {
   }
 
   @Test
-  public void before_drag_and_drop() {
+  public void before_drag_and_drop() throws InterruptedException {
     find("#left ul li").should().haveSize(3);
     find("#left ul").should().contain("Bob", "John", "Jane");
 
@@ -38,8 +38,6 @@ public class DragAndDropTest extends AbstractTest {
     find("#left ul li").should().haveSize(2);
     find("#left ul").should().contain("John", "Jane");
 
-    find("#right ul li").should().haveSize(1);
-    find("#right ul").should().contain("Bob");
   }
 
   @Test

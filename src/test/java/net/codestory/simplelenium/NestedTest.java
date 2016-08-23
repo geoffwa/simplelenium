@@ -39,7 +39,7 @@ public class NestedTest extends AbstractTest {
 
   TheSection theSection;
 
-  static class TheSection implements SectionObject {
+  static class TheSection extends SectionObject {
     DomElement third;
   }
 
@@ -54,7 +54,7 @@ public class NestedTest extends AbstractTest {
 
   ThePage thePage;
 
-  static class ThePage implements PageObject {
+  static class ThePage extends PageObject {
     @Override
     public String url() {
       return "/nested";

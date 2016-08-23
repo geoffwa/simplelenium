@@ -15,20 +15,34 @@
  */
 package net.codestory.simplelenium.driver;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.FluentIterable;
 import net.codestory.simplelenium.driver.chrome.ChromeDriverDownloader;
 import net.codestory.simplelenium.driver.phantomjs.PhantomJsDownloader;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
-import java.util.function.Function;
-
-import static java.util.stream.Stream.of;
-
 public enum Browser {
-  PHANTOM_JS(capabilities -> new PhantomJsDownloader().createNewDriver(capabilities)),
-  CHROME(capabilities -> new ChromeDriverDownloader().createNewDriver(capabilities)),
-  FIREFOX(capabilities -> new FirefoxDriver(capabilities));
+  PHANTOM_JS(new Function<Capabilities, RemoteWebDriver>() {
+    @Override
+    public RemoteWebDriver apply(Capabilities capabilities) {
+      return new PhantomJsDownloader().createNewDriver(capabilities);
+    }
+  }),
+  CHROME(new Function<Capabilities, RemoteWebDriver>() {
+    @Override
+    public RemoteWebDriver apply(Capabilities capabilities) {
+      return new ChromeDriverDownloader().createNewDriver(capabilities);
+    }
+  }),
+  FIREFOX(new Function<Capabilities, RemoteWebDriver>() {
+    @Override
+    public RemoteWebDriver apply(Capabilities capabilities) {
+      return new FirefoxDriver(capabilities);
+    }
+  });
 
   private final Function<Capabilities, RemoteWebDriver> driverSupplier;
   private final ThreadLocal<SeleniumDriver> perThreadDriver = new ThreadLocal<SeleniumDriver>() {
@@ -59,12 +73,20 @@ public enum Browser {
   }
 
   public static Browser getCurrentBrowser() {
-    String browserName = Configuration.BROWSER.get();
+    final String browserName = Configuration.BROWSER.get();
 
-    return of(Browser.values())
-      .filter(browser -> browser.name().equalsIgnoreCase(browserName))
-      .findFirst()
-      .orElseThrow(() -> new IllegalStateException("No selenium driver for " + browserName));
+    Browser browser = FluentIterable.of(Browser.values())
+        .firstMatch(new Predicate<Browser>() {
+          @Override
+          public boolean apply(Browser browser) {
+            return browser.name().equalsIgnoreCase(browserName);
+          }
+        }).orNull();
+
+    if (browser == null)
+      throw new IllegalStateException("No selenium driver for " + browserName);
+
+    return browser;
   }
 
   public static SeleniumDriver getCurrentDriver() {

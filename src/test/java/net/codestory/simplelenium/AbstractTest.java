@@ -17,6 +17,7 @@ package net.codestory.simplelenium;
 
 public abstract class AbstractTest extends SeleniumTest {
   protected String getDefaultBaseUrl() {
-    return "http://localhost:" + new TestWebServer().port();
+    TestWebServer testWebServer = new TestWebServer();
+    return "http://" + testWebServer.hostname() + ":" + testWebServer.port();
   }
 }

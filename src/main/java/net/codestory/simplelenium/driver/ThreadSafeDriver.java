@@ -18,7 +18,9 @@ package net.codestory.simplelenium.driver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.UnreachableBrowserException;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -29,29 +31,35 @@ class ThreadSafeDriver {
     // Static class
   }
 
-  static SeleniumDriver makeThreadSafe(RemoteWebDriver driver) {
-    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-      try {
-        driver.quit();
-      } catch (UnreachableBrowserException e) {
-        // Ignore. The browser was killed properly
+  static SeleniumDriver makeThreadSafe(final RemoteWebDriver driver) {
+    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          driver.quit();
+        } catch (UnreachableBrowserException e) {
+          // Ignore. The browser was killed properly
+        }
       }
     }));
 
     return (SeleniumDriver) Proxy.newProxyInstance(
-      Thread.currentThread().getContextClassLoader(),
-      findInterfaces(driver),
-      (proxy, method, args) -> {
-        if (method.getName().equals("quit")) {
-          return null; // We don't want anybody to quit() our (per thread) driver
-        }
+        Thread.currentThread().getContextClassLoader(),
+        findInterfaces(driver),
+        new InvocationHandler() {
+          @Override
+          public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            if (method.getName().equals("quit")) {
+              return null; // We don't want anybody to quit() our (per thread) driver
+            }
 
-        try {
-          return method.invoke(driver, args);
-        } catch (InvocationTargetException e) {
-          throw e.getCause();
-        }
-      });
+            try {
+              return method.invoke(driver, args);
+            } catch (InvocationTargetException e) {
+              throw e.getCause();
+            }
+          }
+        });
   }
 
   private static Class[] findInterfaces(Object driver) {

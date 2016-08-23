@@ -15,15 +15,15 @@
  */
 package net.codestory.simplelenium.filters;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.collect.Iterables;
 import net.codestory.simplelenium.FilteredDomElement;
 import net.codestory.simplelenium.text.Text;
 import org.openqa.selenium.WebElement;
 
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 class ElementFilterBuilder implements FilteredDomElement {
   private final LazyDomElement domElement;
@@ -111,13 +111,25 @@ class ElementFilterBuilder implements FilteredDomElement {
     return Text.hasOrNot(!ok, what);
   }
 
-  private LazyDomElement build(String word, Object details, Predicate<String> predicate) {
+  private LazyDomElement build(String word, Object details, final Predicate<String> predicate) {
     String fullDescription = " with " + description + " that " + word;
     if (details != null) {
       fullDescription += " [" + details + "]";
     }
 
-    UnaryOperator<Stream<WebElement>> filter = stream -> stream.filter(element -> (ok == predicate.test(toValue.apply(element))));
+    final Predicate<String> okPredicate = ok ? predicate : Predicates.not(predicate);
+
+    Function<Iterable<WebElement>, Iterable<WebElement>> filter = new Function<Iterable<WebElement>, Iterable<WebElement>>() {
+      @Override
+      public Iterable<WebElement> apply(final Iterable<WebElement> elements) {
+        return Iterables.filter(elements, new Predicate<WebElement>() {
+          @Override
+          public boolean apply(WebElement webElement) {
+            return okPredicate.apply(toValue.apply(webElement));
+          }
+        });
+      }
+    };
 
     return domElement.with(new ElementFilter(fullDescription, filter));
   }

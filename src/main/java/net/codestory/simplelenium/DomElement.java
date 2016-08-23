@@ -1,12 +1,12 @@
 /**
  * Copyright (C) 2013-2015 all@code-story.net
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,141 +15,143 @@
  */
 package net.codestory.simplelenium;
 
+import com.google.common.base.Function;
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.Select;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 
-public interface DomElement extends Navigation {
+public abstract class DomElement extends Navigation {
+
+  // Nested find
+  public abstract DomElement find(String selector);
+
+  public abstract DomElement find(By selector);
+
   // Narrow find
+  public abstract FilteredDomElement withText();
 
-  FilteredDomElement withText();
+  public abstract FilteredDomElement withId();
 
-  FilteredDomElement withId();
+  public abstract FilteredDomElement withName();
 
-  FilteredDomElement withName();
+  public abstract FilteredDomElement withTagName();
 
-  FilteredDomElement withTagName();
+  public abstract FilteredDomElement withClass();
 
-  FilteredDomElement withClass();
+  public abstract FilteredDomElement with(String name);
 
-  FilteredDomElement with(String name);
+  public abstract FilteredDomElement withCss(String name);
 
-  FilteredDomElement withCss(String name);
-
-  FilteredDomElement with(String description, Function<WebElement, String> toValue);
+  public abstract FilteredDomElement with(String description, Function<WebElement, String> toValue);
 
   // Limit results
 
-  DomElement first();
+  public abstract DomElement first();
 
-  DomElement second();
+  public abstract DomElement second();
 
-  DomElement third();
+  public abstract DomElement third();
 
-  DomElement nth(int index);
+  public abstract DomElement nth(int index);
 
-  DomElement limit(int max);
+  public abstract DomElement limit(int max);
 
-  DomElement skip(int count);
+  public abstract DomElement skip(int count);
 
-  DomElement last();
+  public abstract DomElement last();
 
-  DomElement filter(String description, UnaryOperator<Stream<WebElement>> filter);
+  public abstract DomElement filter(String description, Function<Iterable<WebElement>, Iterable<WebElement>> filter);
 
   // Shortcuts
 
-  default DomElement withText(String text) {
+  public DomElement withText(String text) {
     return withText().containing(text);
   }
 
-  default DomElement withId(String id) {
+  public DomElement withId(String id) {
     return withId().equalTo(id);
   }
 
-  default DomElement withName(String name) {
+  public DomElement withName(String name) {
     return withName().equalTo(name);
   }
 
-  default DomElement withClass(String cssClass) {
+  public DomElement withClass(String cssClass) {
     return withClass().containingWord(cssClass);
   }
 
-  default DomElement withTagName(String name) {
+  public DomElement withTagName(String name) {
     return withTagName().equalTo(name);
   }
 
   // Assertions
 
-  Should should();
+  public abstract Should should();
 
   // Actions
 
-  DomElement fill(CharSequence text);
+  public abstract DomElement fill(CharSequence text);
 
-  DomElement append(CharSequence text);
+  public abstract DomElement append(CharSequence text);
 
-  DomElement pressReturn();
+  public abstract DomElement pressReturn();
 
-  DomElement pressEnter();
+  public abstract DomElement pressEnter();
 
-  DomElement sendKeys(CharSequence... keysToSend);
+  public abstract DomElement sendKeys(CharSequence... keysToSend);
 
-  DomElement clear();
+  public abstract DomElement clear();
 
-  DomElement submit();
+  public abstract DomElement submit();
 
-  DomElement check();
+  public abstract DomElement check();
 
-  DomElement uncheck();
+  public abstract DomElement uncheck();
 
-  DomElement click();
+  public abstract DomElement click();
 
-  DomElement click(int x, int y);
+  public abstract DomElement click(int x, int y);
 
-  DomElement doubleClick();
+  public abstract DomElement doubleClick();
 
-  DomElement doubleClick(int x, int y);
+  public abstract DomElement doubleClick(int x, int y);
 
-  DomElement clickAndHold();
+  public abstract DomElement clickAndHold();
 
-  DomElement dragAndDropTo(String selector);
+  public abstract DomElement dragAndDropTo(String selector);
 
-  DomElement contextClick();
+  public abstract DomElement contextClick();
 
-  DomElement release();
+  public abstract DomElement release();
 
-  DomElement executeActions(String description, BiConsumer<WebElement, Actions> actionsOnElement);
+  public abstract DomElement executeActions(String description, BiConsumer<WebElement, Actions> actionsOnElement);
 
   // Selection
 
-  DomElement select(String text);
+  public abstract DomElement select(String text);
 
-  DomElement deselect();
+  public abstract DomElement deselect();
 
-  DomElement deselectByValue(String value);
+  public abstract DomElement deselectByValue(String value);
 
-  DomElement deselectByVisibleText(String text);
+  public abstract DomElement deselectByVisibleText(String text);
 
-  DomElement deselectByIndex(int index);
+  public abstract DomElement deselectByIndex(int index);
 
-  DomElement selectByIndex(int index);
+  public abstract DomElement selectByIndex(int index);
 
-  DomElement selectByValue(String value);
+  public abstract DomElement selectByValue(String value);
 
-  DomElement executeSelect(String description, Consumer<Select> selectOnElement);
+  public abstract DomElement executeSelect(String description, Consumer<Select> selectOnElement);
 
   // Actions on low level elements
 
-  DomElement execute(Consumer<WebElement> action);
+  public abstract DomElement execute(Consumer<WebElement> action);
 
   // Retry
 
-  DomElement retryFor(long duration, TimeUnit timeUnit);
+  public abstract DomElement retryFor(long duration, TimeUnit timeUnit);
 }

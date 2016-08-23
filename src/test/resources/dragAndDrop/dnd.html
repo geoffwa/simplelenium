@@ -1,10 +1,10 @@
----
-layout: default
-ng-app: dnd
----
-
+<html>
+<head>
+    <title>Drag and Drop Test</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body ng-app="dnd">
 <div id="main" ng-controller="DndController as dnd">
-
     <div class="box" id="left"
          ng-drop="true"
          ng-drop-success="dnd.onDropList1($data)">
@@ -31,8 +31,8 @@ ng-app: dnd
         </ul>
     </div>
 </div>
-
-[[css 'style']]
-[[webjar 'angular.js']]
-[[script 'ngDraggable']]
-[[script 'app']]
+<script type="text/javascript" src="angular.min.js"></script>
+<script type="text/javascript" src="ngDraggable.js"></script>
+<script type="text/javascript" src="app.js"></script>
+</body>
+</html>
