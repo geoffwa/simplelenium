@@ -14,7 +14,7 @@ Add Simplerlenium as a maven or gradle test dependency to your project:
 <dependency>
   <groupId>com.github.geoffwa</groupId>
   <artifactId>simplerlenium</artifactId>
-  <version>2.1</version>
+  <version>2.2</version>
   <scope>test</scope>
 </dependency>
 ```
