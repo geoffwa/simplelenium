@@ -4,7 +4,7 @@
 
   <groupId>com.github.geoffwa</groupId>
   <artifactId>simplerlenium</artifactId>
-  <version>2.2</version>
+  <version>2.3-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>Simplerlenium</name>
@@ -22,7 +22,7 @@
     <connection>scm:git:git@github.com:geoffwa/simplerlenium.git</connection>
     <url>scm:git:git@github.com:geoffwa/simplerlenium.git</url>
     <developerConnection>scm:git:git@github.com:geoffwa/simplerlenium.git</developerConnection>
-    <tag>simplerlenium-2.2</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <licenses>
